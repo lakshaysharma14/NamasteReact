@@ -1,18 +1,40 @@
 import RestaurantCard  from "./RestaurantCard";
-import { cartList } from "../../utils/cart-data";
-import { useState } from "react";
+import Shimmer from "./Shimmer"
+import { SWIGGY_API_URL, TopRating } from "../../utils/constants";
+import { useState, useEffect } from "react";
 
 const Body = () => {
 
-  const [listOfRestaurants,setListOfRestaurants] = useState(cartList);
+  const [listOfRestaurants,setListOfRestaurants] = useState([]);
+  
+  useEffect(()=>{
+    console.log("useEffect :: fetchData");
+    fetchData();
+  },[]);
+  
+  const fetchData = async () => {
+    try{
+        const data = await fetch(SWIGGY_API_URL,{ cache: 'no-store',mode:'cors' });
+        const json = await data.json();
+        console.log("fetchData :: json-data :",json);
+        await setListOfRestaurants(json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants);
+    }catch(err){
+        console.log("fetchData :: Error While Fetching Restaurants:",err);
+    }
+  };
 
   // Handler function for Top Rated Restaurants filter button
   const handleFilterButtonClick = () => {
     const filteredList = listOfRestaurants.filter((res) => {
-        return res.info.avgRating > 4.3
+        return res.info.avgRating > TopRating
     });
     setListOfRestaurants(filteredList);
   };
+  
+  if(listOfRestaurants.length === 0){
+    console.log("Shimmer UI");
+    return <Shimmer />;
+  }
 
   return (
     <div className="body">
